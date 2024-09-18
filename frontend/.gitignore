@@ -1,0 +1,87 @@
+# 依赖包目录
+node_modules/
+
+# 构建输出目录
+dist/
+build/
+out/
+public/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器和 IDE 设置
+.vscode/
+.idea/
+*.sublime-workspace
+
+# 缓存和临时文件
+.cache/
+.tmp/
+temp/
+
+# 测试覆盖率报告
+coverage/
+*.lcov
+
+# 锁文件（根据团队协作方式，选择性忽略）
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ESLint 缓存
+.eslintcache
+
+# TypeScript 编译信息
+*.tsbuildinfo
+
+# 可选的 npm 缓存目录
+.npm
+
+# Parcel 缓存（如果使用 Parcel）
+.parcel-cache/
+
+# 下列是针对特定框架的忽略规则，如果未使用可删除
+
+# Next.js 输出目录
+.next/
+
+# Nuxt.js 输出目录
+.nuxt/
+
+# Gatsby.js 输出目录
+.cache/
+public/
+
+# Angular 输出目录
+.angular/
+
+# SvelteKit 输出目录
+.svelte-kit/
+
+# Storybook 输出目录
+.storybook-out/
+
+# React Native
+.expo/
+web-build/
+
+# Yarn 2 和以上版本
+.yarn/*
+.pnp.*
