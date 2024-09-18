@@ -5,46 +5,61 @@ const NewDiscussion = () => {
     const [title, setTitle] = useState("");
     const [authors, setAuthors] = useState<string[]>([]);
     const [source, setSource] = useState("");
-    const [pubYear, setPubYear] = useState<number>(0);
+    const [pubYear, setPubYear] = useState<number>(0);  // 确保这个字段为数字类型
     const [doi, setDoi] = useState("");
     const [summary, setSummary] = useState("");
-    const [linkedDiscussion, setLinkedDiscussion] = useState("");
+    const [linkedDiscussion, setLinkedDiscussion] = useState("");  // 确认是否需要此字段
 
     const submitNewArticle = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        console.log(
-            JSON.stringify({
-                title,
-                authors,
-                source,
-                publication_year: pubYear,
-                doi,
-                summary,
-                linked_discussion: linkedDiscussion,
-            })
-        );
+        // 构建文章数据，确保字段名与数据库匹配
+        const newArticle = {
+            title,
+            authors,
+            source,
+            pubyear: pubYear,  // 确保与 MongoDB 中的字段名一致
+            doi,
+            claim: summary,  // 如果 summary 在数据库中作为 claim 保存
+            evidence: linkedDiscussion,  // 假设 linkedDiscussion 是 evidence
+        };
+
+        try {
+            const response = await fetch("http://localhost:8082/articles", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(newArticle),  // 将数据转换为 JSON 格式
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Article submitted successfully:", data);
+            } else {
+                console.error("Failed to submit article", response.status);
+            }
+        } catch (error) {
+            console.error("An error occurred while submitting the article:", error);
+        }
     };
 
-    // Some helper methods for the authors array
-
+    // 增加作者的功能
     const addAuthor = () => {
         setAuthors(authors.concat([""]));
     };
 
+    // 移除作者的功能
     const removeAuthor = (index: number) => {
         setAuthors(authors.filter((_, i) => i !== index));
     };
 
+    // 更新作者
     const changeAuthor = (index: number, value: string) => {
         setAuthors(
-            authors.map((oldValue, i) => {
-                return index === i ? value : oldValue;
-            })
+            authors.map((oldValue, i) => (index === i ? value : oldValue))
         );
     };
-
-    // Return the full form
 
     return (
         <div className="container">
@@ -57,35 +72,31 @@ const NewDiscussion = () => {
                     name="title"
                     id="title"
                     value={title}
-                    onChange={(event) => {
-                        setTitle(event.target.value);
-                    }}
+                    onChange={(event) => setTitle(event.target.value)}
                 />
 
                 <label htmlFor="author">Authors:</label>
-                {authors.map((author, index) => {
-                    return (
-                        <div key={`author ${index}`} className={formStyles.arrayItem}>
-                            <input
-                                type="text"
-                                name="author"
-                                value={author}
-                                onChange={(event) => changeAuthor(index, event.target.value)}
-                                className={formStyles.formItem}
-                            />
-                            <button
-                                onClick={() => removeAuthor(index)}
-                                className={formStyles.buttonItem}
-                                style={{ marginLeft: "3rem" }}
-                                type="button"
-                            >
-                                -
-                            </button>
-                        </div>
-                    );
-                })}
+                {authors.map((author, index) => (
+                    <div key={`author ${index}`} className={formStyles.arrayItem}>
+                        <input
+                            type="text"
+                            name="author"
+                            value={author}
+                            onChange={(event) => changeAuthor(index, event.target.value)}
+                            className={formStyles.formItem}
+                        />
+                        <button
+                            onClick={() => removeAuthor(index)}
+                            className={formStyles.buttonItem}
+                            style={{ marginLeft: "3rem" }}
+                            type="button"
+                        >
+                            -
+                        </button>
+                    </div>
+                ))}
                 <button
-                    onClick={() => addAuthor()}
+                    onClick={addAuthor}
                     className={formStyles.buttonItem}
                     style={{ marginLeft: "auto" }}
                     type="button"
@@ -100,9 +111,7 @@ const NewDiscussion = () => {
                     name="source"
                     id="source"
                     value={source}
-                    onChange={(event) => {
-                        setSource(event.target.value);
-                    }}
+                    onChange={(event) => setSource(event.target.value)}
                 />
 
                 <label htmlFor="pubYear">Publication Year:</label>
@@ -114,11 +123,7 @@ const NewDiscussion = () => {
                     value={pubYear}
                     onChange={(event) => {
                         const val = event.target.value;
-                        if (val === "") {
-                            setPubYear(0);
-                        } else {
-                            setPubYear(parseInt(val));
-                        }
+                        setPubYear(val === "" ? 0 : parseInt(val));
                     }}
                 />
 
@@ -129,17 +134,23 @@ const NewDiscussion = () => {
                     name="doi"
                     id="doi"
                     value={doi}
-                    onChange={(event) => {
-                        setDoi(event.target.value);
-                    }}
+                    onChange={(event) => setDoi(event.target.value)}
                 />
 
-                <label htmlFor="summary">Summary:</label>
+                <label htmlFor="summary">Claim (Summary):</label>
                 <textarea
                     className={formStyles.formTextArea}
                     name="summary"
                     value={summary}
                     onChange={(event) => setSummary(event.target.value)}
+                />
+
+                <label htmlFor="linkedDiscussion">Evidence (Linked Discussion):</label>
+                <textarea
+                    className={formStyles.formTextArea}
+                    name="linkedDiscussion"
+                    value={linkedDiscussion}
+                    onChange={(event) => setLinkedDiscussion(event.target.value)}
                 />
 
                 <button className={formStyles.formItem} type="submit">
