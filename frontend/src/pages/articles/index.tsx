@@ -1,13 +1,12 @@
 import { GetStaticProps, NextPage } from "next";
 import SortableTable from "../../components/table/SortableTable";
 
-// 允许 pubyear 为 string、number 或 null
 interface ArticlesInterface {
     id: string;
     title: string;
     authors: string;
     source: string;
-    pubyear: string | number | null;
+    pubyear: number;
     doi: string;
     claim: string;
     evidence: string;
