@@ -23,6 +23,7 @@ let ArticlesService = class ArticlesService {
     }
     async createArticle(createArticleDto) {
         const createdArticle = new this.articleModel(createArticleDto);
+        createdArticle.status = 'pending';
         return createdArticle.save();
     }
     async getPendingArticles() {

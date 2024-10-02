@@ -20,6 +20,7 @@ export class ArticlesService {
   // 创建新文章
   async createArticle(createArticleDto: CreateArticleDto): Promise<Article> {
     const createdArticle = new this.articleModel(createArticleDto);
+    createdArticle.status = 'pending'; // 确保文章默认处于待审核状态
     return createdArticle.save();
   }
 

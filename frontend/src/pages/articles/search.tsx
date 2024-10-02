@@ -61,15 +61,19 @@ const SearchPage: NextPage = () => {
         setResults([]);
 
         try {
-            // 打印 API 基础 URL 进行调试
-            console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
-
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/search`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(searchParams),
+                body: JSON.stringify({
+                    method: searchParams.method || undefined,
+                    claim: searchParams.claim || undefined,
+                    startYear: searchParams.startYear ? Number(searchParams.startYear) : undefined,
+                    endYear: searchParams.endYear ? Number(searchParams.endYear) : undefined,
+                    studyType: searchParams.studyType || undefined,
+                    evidenceResult: searchParams.evidenceResult || undefined,
+                }),
             });
 
             if (!response.ok) {
@@ -103,7 +107,7 @@ const SearchPage: NextPage = () => {
                 <form onSubmit={handleSearch}>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                         <TextField
-                            label="Software Engineering Practice"
+                            label="Software Engineering Method"
                             name="method"
                             value={searchParams.method || ""}
                             onChange={handleChange}

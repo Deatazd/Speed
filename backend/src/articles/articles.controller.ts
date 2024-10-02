@@ -1,3 +1,5 @@
+// src/articles/articles.controller.ts
+
 import {
   Controller,
   Get,
@@ -33,7 +35,6 @@ export class ArticlesController {
     return articles.map((article) => this.transformToResponseDto(article));
   }
 
-  // 添加获取已批准文章的路由
   @Get('approved')
   async getApprovedArticles(): Promise<ArticleResponseDto[]> {
     const articles = await this.articlesService.getApprovedArticles();
