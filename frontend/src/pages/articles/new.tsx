@@ -1,153 +1,178 @@
-import { FormEvent, useState } from "react";
-import formStyles from "../../styles/Form.module.scss";
+// src/pages/articles/new.tsx
 
-const NewDiscussion = () => {
-    const [title, setTitle] = useState("");
-    const [authors, setAuthors] = useState<string[]>([]);
-    const [source, setSource] = useState("");
-    const [pubYear, setPubYear] = useState<number>(0);
-    const [doi, setDoi] = useState("");
-    const [summary, setSummary] = useState("");
-    const [linkedDiscussion, setLinkedDiscussion] = useState("");
+import { NextPage } from "next";
+import { useState } from "react";
+import {
+    Container,
+    Typography,
+    TextField,
+    Button,
+    Box,
+    Alert,
+} from "@mui/material";
 
-    const submitNewArticle = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+interface NewArticle {
+    title: string;
+    authors: string;
+    source: string;
+    pubyear: number;
+    doi: string;
+    claim: string;
+    evidence: string;
+}
 
-        console.log(
-            JSON.stringify({
-                title,
-                authors,
-                source,
-                publication_year: pubYear,
-                doi,
-                summary,
-                linked_discussion: linkedDiscussion,
-            })
-        );
+const NewArticlePage: NextPage = () => {
+    const [formData, setFormData] = useState<NewArticle>({
+        title: "",
+        authors: "",
+        source: "",
+        pubyear: new Date().getFullYear(),
+        doi: "",
+        claim: "",
+        evidence: "",
+    });
+
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === "pubyear" ? Number(value) : value,
+        }));
     };
 
-    // Some helper methods for the authors array
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    const addAuthor = () => {
-        setAuthors(authors.concat([""]));
+        // 简单的表单验证
+        for (const key in formData) {
+            if (formData[key as keyof NewArticle] === "") {
+                setMessage({ type: "error", text: "所有字段都是必填的。" });
+                return;
+            }
+        }
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            setMessage({ type: "success", text: "submit success！" });
+            setFormData({
+                title: "",
+                authors: "",
+                source: "",
+                pubyear: new Date().getFullYear(),
+                doi: "",
+                claim: "",
+                evidence: "",
+            });
+        } catch (error) {
+            console.error("Failed to submit article:", error);
+            setMessage({ type: "error", text: "something wrong,retry。" });
+        }
     };
-
-    const removeAuthor = (index: number) => {
-        setAuthors(authors.filter((_, i) => i !== index));
-    };
-
-    const changeAuthor = (index: number, value: string) => {
-        setAuthors(
-            authors.map((oldValue, i) => {
-                return index === i ? value : oldValue;
-            })
-        );
-    };
-
-    // Return the full form
 
     return (
-        <div className="container">
-            <h1>New Article</h1>
-            <form className={formStyles.form} onSubmit={submitNewArticle}>
-                <label htmlFor="title">Title:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="title"
-                    id="title"
-                    value={title}
-                    onChange={(event) => {
-                        setTitle(event.target.value);
-                    }}
-                />
-
-                <label htmlFor="author">Authors:</label>
-                {authors.map((author, index) => {
-                    return (
-                        <div key={`author ${index}`} className={formStyles.arrayItem}>
-                            <input
-                                type="text"
-                                name="author"
-                                value={author}
-                                onChange={(event) => changeAuthor(index, event.target.value)}
-                                className={formStyles.formItem}
-                            />
-                            <button
-                                onClick={() => removeAuthor(index)}
-                                className={formStyles.buttonItem}
-                                style={{ marginLeft: "3rem" }}
-                                type="button"
-                            >
-                                -
-                            </button>
-                        </div>
-                    );
-                })}
-                <button
-                    onClick={() => addAuthor()}
-                    className={formStyles.buttonItem}
-                    style={{ marginLeft: "auto" }}
-                    type="button"
-                >
-                    +
-                </button>
-
-                <label htmlFor="source">Source:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="source"
-                    id="source"
-                    value={source}
-                    onChange={(event) => {
-                        setSource(event.target.value);
-                    }}
-                />
-
-                <label htmlFor="pubYear">Publication Year:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="number"
-                    name="pubYear"
-                    id="pubYear"
-                    value={pubYear}
-                    onChange={(event) => {
-                        const val = event.target.value;
-                        if (val === "") {
-                            setPubYear(0);
-                        } else {
-                            setPubYear(parseInt(val));
-                        }
-                    }}
-                />
-
-                <label htmlFor="doi">DOI:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="doi"
-                    id="doi"
-                    value={doi}
-                    onChange={(event) => {
-                        setDoi(event.target.value);
-                    }}
-                />
-
-                <label htmlFor="summary">Summary:</label>
-                <textarea
-                    className={formStyles.formTextArea}
-                    name="summary"
-                    value={summary}
-                    onChange={(event) => setSummary(event.target.value)}
-                />
-
-                <button className={formStyles.formItem} type="submit">
-                    Submit
-                </button>
-            </form>
-        </div>
+        <Container maxWidth="sm">
+            <Box sx={{ mt: 5, mb: 3 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Submit New Article
+                </Typography>
+                {message && (
+                    <Alert severity={message.type} sx={{ mb: 2 }}>
+                        {message.text}
+                    </Alert>
+                )}
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        label="Title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Authors"
+                        name="authors"
+                        value={formData.authors}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        helperText="Separate multiple authors with commas"
+                    />
+                    <TextField
+                        label="Source"
+                        name="source"
+                        value={formData.source}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Publication Year"
+                        name="pubyear"
+                        type="number"
+                        value={formData.pubyear}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        InputProps={{ inputProps: { min: 1900, max: new Date().getFullYear() } }}
+                    />
+                    <TextField
+                        label="DOI"
+                        name="doi"
+                        value={formData.doi}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Claim"
+                        name="claim"
+                        value={formData.claim}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        multiline
+                        rows={3}
+                    />
+                    <TextField
+                        label="Evidence"
+                        name="evidence"
+                        value={formData.evidence}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        multiline
+                        rows={3}
+                    />
+                    <Box sx={{ mt: 2 }}>
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            Submit
+                        </Button>
+                    </Box>
+                </form>
+            </Box>
+        </Container>
     );
 };
 
-export default NewDiscussion;
+export default NewArticlePage;
