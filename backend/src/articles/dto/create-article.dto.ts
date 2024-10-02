@@ -4,7 +4,7 @@ import {
   IsArray,
   IsUrl,
   IsNumber,
-  IsOptional, // 引入 IsOptional 装饰器
+  IsOptional,
 } from 'class-validator';
 
 export class CreateArticleDto {
@@ -20,11 +20,11 @@ export class CreateArticleDto {
   @IsNotEmpty()
   readonly source: string;
 
-  @IsOptional() // pubyear 是可选的
+  @IsOptional()
   @IsNumber()
   readonly pubyear?: number;
 
-  @IsOptional() // doi 是可选的
+  @IsOptional()
   @IsUrl()
   readonly doi?: string;
 
@@ -33,4 +33,16 @@ export class CreateArticleDto {
 
   @IsString()
   readonly evidence: string;
+
+  @IsOptional()
+  @IsString()
+  readonly seMethod?: string; // SE 方法
+
+  @IsOptional()
+  @IsString()
+  readonly studyType?: string; // 研究类型
+
+  @IsOptional()
+  @IsString()
+  readonly evidenceResult?: string; // 证据结果
 }
