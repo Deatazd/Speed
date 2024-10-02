@@ -5,16 +5,16 @@ export declare class Article {
     authors: string[];
     source: string;
     pubyear: number;
-    doi?: string;
+    doi: string;
     claim: string;
     evidence: string;
     status: string;
     ratings: number[];
-    comments: string[];
     averageRating: number;
-    seMethod?: string;
-    studyType?: string;
-    evidenceResult?: string;
+    comments: string[];
+    seMethod: string;
+    studyType: string;
+    evidenceResult: string;
 }
 export declare const ArticleSchema: import("mongoose").Schema<Article, import("mongoose").Model<Article, any, any, any, Document<unknown, any, Article> & Article & {
     _id: import("mongoose").Types.ObjectId;

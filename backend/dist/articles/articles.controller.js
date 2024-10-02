@@ -16,27 +16,96 @@ exports.ArticlesController = void 0;
 const common_1 = require("@nestjs/common");
 const articles_service_1 = require("./articles.service");
 const create_article_dto_1 = require("./dto/create-article.dto");
+const search_article_dto_1 = require("./dto/search-article.dto");
+const extract_info_dto_1 = require("./dto/extract-info.dto");
 let ArticlesController = class ArticlesController {
     constructor(articlesService) {
         this.articlesService = articlesService;
     }
     async createArticle(createArticleDto) {
-        return this.articlesService.createArticle(createArticleDto);
+        const article = await this.articlesService.createArticle(createArticleDto);
+        return this.transformToResponseDto(article);
     }
     async getPendingArticles() {
-        return this.articlesService.getPendingArticles();
+        const articles = await this.articlesService.getPendingArticles();
+        return articles.map((article) => this.transformToResponseDto(article));
+    }
+    async getApprovedArticles() {
+        const articles = await this.articlesService.getApprovedArticles();
+        return articles.map((article) => this.transformToResponseDto(article));
+    }
+    async getManagedArticles() {
+        const articles = await this.articlesService.getManagedArticles();
+        return articles.map((article) => this.transformToResponseDto(article));
+    }
+    async findAll() {
+        const articles = await this.articlesService.findAll();
+        return articles.map((article) => this.transformToResponseDto(article));
     }
     async extractArticleInfo(id, extractedInfo) {
-        return this.articlesService.extractArticleInfo(id, extractedInfo);
+        const updatedArticle = await this.articlesService.extractArticleInfo(id, extractedInfo);
+        if (!updatedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return this.transformToResponseDto(updatedArticle);
     }
     async searchArticles(searchParams) {
-        return this.articlesService.searchArticles(searchParams);
+        const articles = await this.articlesService.searchArticles(searchParams);
+        return articles.map((article) => this.transformToResponseDto(article));
     }
-    async rateArticle(id, rating) {
-        return this.articlesService.rateArticle(id, rating.rating);
+    async rateArticle(id, rateArticleDto) {
+        const ratedArticle = await this.articlesService.rateArticle(id, rateArticleDto.rating);
+        if (!ratedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return this.transformToResponseDto(ratedArticle);
     }
-    async commentArticle(id, comment) {
-        return this.articlesService.commentArticle(id, comment.comment);
+    async commentArticle(id, commentArticleDto) {
+        const commentedArticle = await this.articlesService.commentArticle(id, commentArticleDto.comment);
+        if (!commentedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return this.transformToResponseDto(commentedArticle);
+    }
+    async manageArticle(id, manageArticleDto) {
+        const managedArticle = await this.articlesService.manageArticle(id, manageArticleDto);
+        if (!managedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return this.transformToResponseDto(managedArticle);
+    }
+    async approveArticle(id) {
+        const approvedArticle = await this.articlesService.approveArticle(id);
+        if (!approvedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return this.transformToResponseDto(approvedArticle);
+    }
+    async rejectArticle(id) {
+        const deleted = await this.articlesService.rejectArticle(id);
+        if (!deleted) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return { message: `Article with id ${id} has been rejected and deleted.` };
+    }
+    transformToResponseDto(article) {
+        return {
+            id: article._id.toString(),
+            title: article.title,
+            authors: article.authors,
+            source: article.source,
+            pubyear: article.pubyear,
+            doi: article.doi,
+            claim: article.claim,
+            evidence: article.evidence,
+            status: article.status,
+            ratings: article.ratings,
+            averageRating: article.averageRating,
+            comments: article.comments,
+            seMethod: article.seMethod,
+            studyType: article.studyType,
+            evidenceResult: article.evidenceResult,
+        };
     }
 };
 exports.ArticlesController = ArticlesController;
@@ -54,18 +123,36 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "getPendingArticles", null);
 __decorate([
+    (0, common_1.Get)('approved'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "getApprovedArticles", null);
+__decorate([
+    (0, common_1.Get)('view'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "getManagedArticles", null);
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "findAll", null);
+__decorate([
     (0, common_1.Post)('extract-info/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, extract_info_dto_1.ExtractInfoDto]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "extractArticleInfo", null);
 __decorate([
     (0, common_1.Post)('search'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [search_article_dto_1.SearchArticleDto]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "searchArticles", null);
 __decorate([
@@ -73,7 +160,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Function]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "rateArticle", null);
 __decorate([
@@ -81,9 +168,31 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Function]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "commentArticle", null);
+__decorate([
+    (0, common_1.Post)('manage/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "manageArticle", null);
+__decorate([
+    (0, common_1.Post)('approve/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "approveArticle", null);
+__decorate([
+    (0, common_1.Post)('reject/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "rejectArticle", null);
 exports.ArticlesController = ArticlesController = __decorate([
     (0, common_1.Controller)('articles'),
     __metadata("design:paramtypes", [articles_service_1.ArticlesService])

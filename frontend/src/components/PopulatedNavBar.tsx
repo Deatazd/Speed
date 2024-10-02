@@ -14,11 +14,13 @@ const PopulatedNavBar = () => {
                 Articles <IoMdArrowDropdown />
                 <NavDropdown>
                     <NavItem route="/articles">View Articles</NavItem>
+                    <NavItem route="/articles/view">View</NavItem>
                     <NavItem route="/articles/new">Submit New</NavItem>
                     <NavItem route="/articles/review">Review</NavItem>  {/* 新增：审核页面的导航链接 */}
-                    <NavItem route="/articles/search">Search</NavItem>  {/* 新增：搜索页面的导航链接 */}
-                    <NavItem route="/extract-info">Extract Info</NavItem>
+                    <NavItem route="/articles/search">Search</NavItem>
+                    <NavItem route="/articles/manage">manage</NavItem>
                 </NavDropdown>
+                
             </NavItem>
         </NavBar>
     );

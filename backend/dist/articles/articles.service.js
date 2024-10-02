@@ -22,68 +22,104 @@ let ArticlesService = class ArticlesService {
         this.articleModel = articleModel;
     }
     async createArticle(createArticleDto) {
-        const newArticle = new this.articleModel(createArticleDto);
-        return newArticle.save();
+        const createdArticle = new this.articleModel(createArticleDto);
+        return createdArticle.save();
     }
     async getPendingArticles() {
         return this.articleModel.find({ status: 'pending' }).exec();
     }
+    async getManagedArticles() {
+        return this.articleModel.find({ status: 'managed' }).exec();
+    }
+    async getApprovedArticles() {
+        return this.articleModel.find({ status: 'approved' }).exec();
+    }
+    async findAll() {
+        return this.articleModel.find().exec();
+    }
+    async extractArticleInfo(id, extractedInfo) {
+        return this.articleModel
+            .findByIdAndUpdate(id, extractedInfo, { new: true })
+            .exec();
+    }
     async searchArticles(searchParams) {
         const query = {};
         if (searchParams.method) {
-            query['seMethod'] = searchParams.method;
+            query.seMethod = { $regex: searchParams.method, $options: 'i' };
         }
         if (searchParams.claim) {
-            query['claim'] = new RegExp(searchParams.claim, 'i');
+            query.claim = { $regex: searchParams.claim, $options: 'i' };
         }
         if (searchParams.startYear && searchParams.endYear) {
-            query['pubyear'] = {
-                $gte: searchParams.startYear,
-                $lte: searchParams.endYear,
-            };
+            query.pubyear = { $gte: searchParams.startYear, $lte: searchParams.endYear };
+        }
+        else if (searchParams.startYear) {
+            query.pubyear = { $gte: searchParams.startYear };
+        }
+        else if (searchParams.endYear) {
+            query.pubyear = { $lte: searchParams.endYear };
         }
         if (searchParams.studyType) {
-            query['studyType'] = searchParams.studyType;
+            query.studyType = searchParams.studyType;
         }
         if (searchParams.evidenceResult) {
-            query['evidenceResult'] = searchParams.evidenceResult;
+            query.evidenceResult = searchParams.evidenceResult;
         }
         return this.articleModel.find(query).exec();
     }
-    async extractArticleInfo(id, extractedInfo) {
-        const { seMethod, studyType, evidenceResult } = extractedInfo;
-        return this.articleModel
-            .findByIdAndUpdate(id, { seMethod, studyType, evidenceResult }, { new: true })
-            .exec();
-    }
-    async approveArticle(id) {
-        return this.articleModel
-            .findByIdAndUpdate(id, { status: 'approved' }, { new: true })
-            .exec();
-    }
-    async rejectArticle(id) {
-        return this.articleModel
-            .findByIdAndUpdate(id, { status: 'rejected' }, { new: true })
-            .exec();
-    }
     async rateArticle(id, rating) {
         const article = await this.articleModel.findById(id).exec();
-        if (!article.ratings) {
-            article.ratings = [];
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
         }
         article.ratings.push(rating);
-        const totalRatings = article.ratings.length;
         article.averageRating =
-            article.ratings.reduce((a, b) => a + b, 0) / totalRatings;
+            article.ratings.reduce((a, b) => a + b, 0) / article.ratings.length;
         return article.save();
     }
     async commentArticle(id, comment) {
         const article = await this.articleModel.findById(id).exec();
-        if (!article.comments) {
-            article.comments = [];
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
         }
         article.comments.push(comment);
         return article.save();
+    }
+    async manageArticle(id, manageArticleDto) {
+        const article = await this.articleModel.findById(id).exec();
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        const { rating, seMethod, studyType, evidenceResult } = manageArticleDto;
+        if (rating) {
+            article.ratings.push(rating);
+            article.averageRating =
+                article.ratings.reduce((a, b) => a + b, 0) / article.ratings.length;
+        }
+        if (seMethod) {
+            article.seMethod = seMethod;
+        }
+        if (studyType) {
+            article.studyType = studyType;
+        }
+        if (evidenceResult) {
+            article.evidenceResult = evidenceResult;
+        }
+        article.status = 'managed';
+        return article.save();
+    }
+    async approveArticle(id) {
+        const updatedArticle = await this.articleModel
+            .findByIdAndUpdate(id, { status: 'approved' }, { new: true })
+            .exec();
+        if (!updatedArticle) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        return updatedArticle;
+    }
+    async rejectArticle(id) {
+        const deleted = await this.articleModel.findByIdAndDelete(id).exec();
+        return !!deleted;
     }
 };
 exports.ArticlesService = ArticlesService;

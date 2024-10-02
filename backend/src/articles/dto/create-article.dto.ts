@@ -1,48 +1,30 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsArray,
-  IsUrl,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
+// src/articles/dto/create-article.dto.ts
+
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateArticleDto {
-  @IsString()
-  @IsNotEmpty()
-  readonly title: string;
+    @IsString()
+    title: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  readonly authors: string[];
+    @IsString()
+    authors: string;
 
-  @IsString()
-  @IsNotEmpty()
-  readonly source: string;
+    @IsString()
+    source: string;
 
-  @IsOptional()
-  @IsNumber()
-  readonly pubyear?: number;
+    @IsNumber()
+    pubyear: number;
 
-  @IsOptional()
-  @IsUrl()
-  readonly doi?: string;
+    @IsString()
+    doi: string;
 
-  @IsString()
-  readonly claim: string;
+    @IsString()
+    claim: string;
 
-  @IsString()
-  readonly evidence: string;
+    @IsString()
+    evidence: string;
 
-  @IsOptional()
-  @IsString()
-  readonly seMethod?: string; // SE 方法
-
-  @IsOptional()
-  @IsString()
-  readonly studyType?: string; // 研究类型
-
-  @IsOptional()
-  @IsString()
-  readonly evidenceResult?: string; // 证据结果
+    @IsOptional()
+    @IsString()
+    status?: string; // 可选，后端默认设置为 'pending'
 }

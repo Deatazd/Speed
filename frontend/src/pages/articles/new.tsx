@@ -1,194 +1,178 @@
-import { FormEvent, useState } from "react";
-import formStyles from "../../styles/Form.module.scss";
+// src/pages/articles/new.tsx
 
+import { NextPage } from "next";
+import { useState } from "react";
+import {
+    Container,
+    Typography,
+    TextField,
+    Button,
+    Box,
+    Alert,
+} from "@mui/material";
 
+interface NewArticle {
+    title: string;
+    authors: string;
+    source: string;
+    pubyear: number;
+    doi: string;
+    claim: string;
+    evidence: string;
+}
 
-const NewDiscussion = () => {
-    const [title, setTitle] = useState<string>("");
-    const [authors, setAuthors] = useState<string[]>([""]); // 初始值为一个空的输入框
-    const [source, setSource] = useState<string>("");
-    const [pubYear, setPubYear] = useState<number>(new Date().getFullYear());  // 设置为当前年份
-    const [doi, setDoi] = useState<string>("");
-    const [summary, setSummary] = useState<string>(""); // Claim/summary
-    const [linkedDiscussion, setLinkedDiscussion] = useState<string>("");  // Evidence
+const NewArticlePage: NextPage = () => {
+    const [formData, setFormData] = useState<NewArticle>({
+        title: "",
+        authors: "",
+        source: "",
+        pubyear: new Date().getFullYear(),
+        doi: "",
+        claim: "",
+        evidence: "",
+    });
 
-    const submitNewArticle = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-        // 简单验证，确保表单必填项被填写
-        if (!title || authors.length === 0 || !source || !summary || !linkedDiscussion) {
-            alert("Please fill in all required fields.");
-            return;
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === "pubyear" ? Number(value) : value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // 简单的表单验证
+        for (const key in formData) {
+            if (formData[key as keyof NewArticle] === "") {
+                setMessage({ type: "error", text: "所有字段都是必填的。" });
+                return;
+            }
         }
 
-        // 构建文章数据，确保字段名与数据库匹配
-        const newArticle = {
-            title,
-            authors,
-            source,
-            pubyear: pubYear,
-            doi,
-            claim: summary,
-            evidence: linkedDiscussion,
-            status: 'pending',  // 设置文章状态为待审核
-        };
-        
-
         try {
-            const response = await fetch("http://localhost:8082/articles", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(newArticle),  // 将数据转换为 JSON 格式
+                body: JSON.stringify(formData),
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Article submitted successfully:", data);
-                // 重置表单
-                resetForm();
-            } else {
-                console.error("Failed to submit article", response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            setMessage({ type: "success", text: "submit success！" });
+            setFormData({
+                title: "",
+                authors: "",
+                source: "",
+                pubyear: new Date().getFullYear(),
+                doi: "",
+                claim: "",
+                evidence: "",
+            });
         } catch (error) {
-            console.error("An error occurred while submitting the article:", error);
+            console.error("Failed to submit article:", error);
+            setMessage({ type: "error", text: "something wrong,retry。" });
         }
     };
 
-    const resetForm = () => {
-        setTitle("");
-        setAuthors([""]);
-        setSource("");
-        setPubYear(new Date().getFullYear());
-        setDoi("");
-        setSummary("");
-        setLinkedDiscussion("");
-    };
-
-    // 增加作者的功能
-    const addAuthor = () => {
-        setAuthors(authors.concat([""]));
-    };
-
-    // 移除作者的功能
-    const removeAuthor = (index: number) => {
-        setAuthors(authors.filter((_, i) => i !== index));
-    };
-
-    // 更新作者
-    const changeAuthor = (index: number, value: string) => {
-        setAuthors(
-            authors.map((oldValue, i) => (index === i ? value : oldValue))
-        );
-    };
-
     return (
-        <div className="container">
-            <h1>New Article</h1>
-            <form className={formStyles.form} onSubmit={submitNewArticle}>
-                <label htmlFor="title">Title:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="title"
-                    id="title"
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    required
-                />
-
-                <label htmlFor="author">Authors:</label>
-                {authors.map((author, index) => (
-                    <div key={`author ${index}`} className={formStyles.arrayItem}>
-                        <input
-                            type="text"
-                            name="author"
-                            value={author}
-                            onChange={(event) => changeAuthor(index, event.target.value)}
-                            className={formStyles.formItem}
-                            required
-                        />
-                        {authors.length > 1 && (
-                            <button
-                                onClick={() => removeAuthor(index)}
-                                className={formStyles.buttonItem}
-                                style={{ marginLeft: "3rem" }}
-                                type="button"
-                            >
-                                -
-                            </button>
-                        )}
-                    </div>
-                ))}
-                <button
-                    onClick={addAuthor}
-                    className={formStyles.buttonItem}
-                    style={{ marginLeft: "auto" }}
-                    type="button"
-                >
-                    +
-                </button>
-
-                <label htmlFor="source">Source:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="source"
-                    id="source"
-                    value={source}
-                    onChange={(event) => setSource(event.target.value)}
-                    required
-                />
-
-                <label htmlFor="pubYear">Publication Year:</label>
-                <input
-                    className={formStyles.formItem}
-                    type="number"
-                    name="pubYear"
-                    id="pubYear"
-                    value={pubYear}
-                    onChange={(event) => {
-                        const val = event.target.value;
-                        setPubYear(val === "" ? 0 : parseInt(val));
-                    }}
-                    required
-                />
-
-                <label htmlFor="doi">DOI (optional):</label>
-                <input
-                    className={formStyles.formItem}
-                    type="text"
-                    name="doi"
-                    id="doi"
-                    value={doi}
-                    onChange={(event) => setDoi(event.target.value)}
-                />
-
-                <label htmlFor="summary">Claim (Summary):</label>
-                <textarea
-                    className={formStyles.formTextArea}
-                    name="summary"
-                    value={summary}
-                    onChange={(event) => setSummary(event.target.value)}
-                    required
-                />
-
-                <label htmlFor="linkedDiscussion">Evidence (Linked Discussion):</label>
-                <textarea
-                    className={formStyles.formTextArea}
-                    name="linkedDiscussion"
-                    value={linkedDiscussion}
-                    onChange={(event) => setLinkedDiscussion(event.target.value)}
-                    required
-                />
-
-                <button className={formStyles.formItem} type="submit">
-                    Submit
-                </button>
-            </form>
-        </div>
+        <Container maxWidth="sm">
+            <Box sx={{ mt: 5, mb: 3 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Submit New Article
+                </Typography>
+                {message && (
+                    <Alert severity={message.type} sx={{ mb: 2 }}>
+                        {message.text}
+                    </Alert>
+                )}
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        label="Title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Authors"
+                        name="authors"
+                        value={formData.authors}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        helperText="Separate multiple authors with commas"
+                    />
+                    <TextField
+                        label="Source"
+                        name="source"
+                        value={formData.source}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Publication Year"
+                        name="pubyear"
+                        type="number"
+                        value={formData.pubyear}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        InputProps={{ inputProps: { min: 1900, max: new Date().getFullYear() } }}
+                    />
+                    <TextField
+                        label="DOI"
+                        name="doi"
+                        value={formData.doi}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Claim"
+                        name="claim"
+                        value={formData.claim}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        multiline
+                        rows={3}
+                    />
+                    <TextField
+                        label="Evidence"
+                        name="evidence"
+                        value={formData.evidence}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        margin="normal"
+                        multiline
+                        rows={3}
+                    />
+                    <Box sx={{ mt: 2 }}>
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            Submit
+                        </Button>
+                    </Box>
+                </form>
+            </Box>
+        </Container>
     );
 };
 
-export default NewDiscussion;
+export default NewArticlePage;

@@ -8,18 +8,22 @@
     padding: 1em;
     margin: 1em 0;
     flex-grow: 1;
+    width: 100%; // 使输入框占据全宽
+    font-size: 1rem; // 调整字体大小
+    box-sizing: border-box;
 }
 
 .formTextArea {
     @extend .formItem;
     min-height: 8em;
+    width: 100%;  // 确保 textarea 也占据全宽
 }
 
 .arrayItem {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: stretch;
+    justify-content: space-between; // 确保子项之间有空间
 }
 
 .buttonItem {
@@ -27,4 +31,15 @@
     height: 3rem;
     flex-grow: 0;
     font-size: 1.5em;
+    align-self: flex-end; // 按钮对齐到表单项末尾
+    cursor: pointer;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #0056b3; // 改变 hover 时的按钮颜色
+    }
 }

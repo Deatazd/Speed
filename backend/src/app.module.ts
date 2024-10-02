@@ -1,17 +1,40 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+// src/app.module.ts
+
+import { Module, Logger } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
-import { ArticlesModule } from './articles/articles.module'; // 确保导入
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.DB_URI),
+    // Load environment variables from .env file
+    ConfigModule.forRoot({
+      isGlobal: true, // Make ConfigModule globally available
+      envFilePath: '.env', // Specify the path to .env file
+    }),
+    // Configure MongooseModule to use the MongoDB URI from environment variables
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGODB_URI');
+        Logger.log(`MongoDB URI: ${uri}`, 'MongooseModule'); // Log the URI for debugging
+        if (!uri) {
+          Logger.error(
+            'MONGODB_URI is not defined in environment variables',
+            'MongooseModule',
+          );
+          throw new Error(
+            'MONGODB_URI is not defined in environment variables',
+          );
+        }
+        return { uri };
+      },
+      inject: [ConfigService],
+    }),
+    // Import your other modules
     ArticlesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

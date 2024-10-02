@@ -2,18 +2,26 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
+const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
+const swagger_1 = require("@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const configService = app.get(config_1.ConfigService);
+    app.useGlobalPipes(new common_1.ValidationPipe());
+    const config = new swagger_1.DocumentBuilder()
+        .setTitle('Articles API')
+        .setDescription('API documentation for Articles module')
+        .setVersion('1.0')
+        .build();
+    const document = swagger_1.SwaggerModule.createDocument(app, config);
+    swagger_1.SwaggerModule.setup('api-docs', app, document);
     app.enableCors({
-        origin: 'http://localhost:3000',
-        methods: 'GET, POST, PUT, DELETE, OPTIONS',
-        allowedHeaders: 'Content-Type, Authorization',
+        origin: configService.get('FRONTEND_URL') || 'http://localhost:3000',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
-        preflightContinue: false,
     });
-    const port = process.env.PORT || 8082;
-    await app.listen(port);
-    console.log(`Server running on http://localhost:${port}`);
+    await app.listen(configService.get('PORT') || 8082);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

@@ -1,53 +1,160 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  NotFoundException,
+} from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { SearchArticleDto } from './dto/search-article.dto';
+import { ExtractInfoDto } from './dto/extract-info.dto';
+import type { RateArticleDto } from './dto/rate-article.dto';
+import type { CommentArticleDto } from './dto/comment-article.dto';
+import type { ManageArticleDto } from './dto/manage-article.dto';
+import { ArticleResponseDto } from './dto/article-response.dto';
 
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
-  // 创建文章
   @Post()
-  async createArticle(@Body() createArticleDto: CreateArticleDto) {
-    return this.articlesService.createArticle(createArticleDto);
+  async createArticle(
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<ArticleResponseDto> {
+    const article = await this.articlesService.createArticle(createArticleDto);
+    return this.transformToResponseDto(article);
   }
 
-  // 获取所有待审核文章
   @Get('pending')
-  async getPendingArticles() {
-    return this.articlesService.getPendingArticles();
+  async getPendingArticles(): Promise<ArticleResponseDto[]> {
+    const articles = await this.articlesService.getPendingArticles();
+    return articles.map((article) => this.transformToResponseDto(article));
   }
 
-  // 提取关键信息
+  // 添加获取已批准文章的路由
+  @Get('approved')
+  async getApprovedArticles(): Promise<ArticleResponseDto[]> {
+    const articles = await this.articlesService.getApprovedArticles();
+    return articles.map((article) => this.transformToResponseDto(article));
+  }
+
+  @Get('view')
+  async getManagedArticles(): Promise<ArticleResponseDto[]> {
+    const articles = await this.articlesService.getManagedArticles();
+    return articles.map((article) => this.transformToResponseDto(article));
+  }
+
+  @Get()
+  async findAll(): Promise<ArticleResponseDto[]> {
+    const articles = await this.articlesService.findAll();
+    return articles.map((article) => this.transformToResponseDto(article));
+  }
+
   @Post('extract-info/:id')
   async extractArticleInfo(
     @Param('id') id: string,
-    @Body() extractedInfo: any,
-  ) {
-    return this.articlesService.extractArticleInfo(id, extractedInfo);
+    @Body() extractedInfo: ExtractInfoDto,
+  ): Promise<ArticleResponseDto> {
+    const updatedArticle = await this.articlesService.extractArticleInfo(
+      id,
+      extractedInfo,
+    );
+    if (!updatedArticle) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return this.transformToResponseDto(updatedArticle);
   }
 
-  // 搜索文章
   @Post('search')
-  async searchArticles(@Body() searchParams: any) {
-    return this.articlesService.searchArticles(searchParams);
+  async searchArticles(
+    @Body() searchParams: SearchArticleDto,
+  ): Promise<ArticleResponseDto[]> {
+    const articles = await this.articlesService.searchArticles(searchParams);
+    return articles.map((article) => this.transformToResponseDto(article));
   }
 
-  // 评级
   @Post('rate/:id')
   async rateArticle(
     @Param('id') id: string,
-    @Body() rating: { rating: number },
-  ) {
-    return this.articlesService.rateArticle(id, rating.rating);
+    @Body() rateArticleDto: RateArticleDto,
+  ): Promise<ArticleResponseDto> {
+    const ratedArticle = await this.articlesService.rateArticle(
+      id,
+      rateArticleDto.rating,
+    );
+    if (!ratedArticle) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return this.transformToResponseDto(ratedArticle);
   }
 
-  // 评论
   @Post('comment/:id')
   async commentArticle(
     @Param('id') id: string,
-    @Body() comment: { comment: string },
-  ) {
-    return this.articlesService.commentArticle(id, comment.comment);
+    @Body() commentArticleDto: CommentArticleDto,
+  ): Promise<ArticleResponseDto> {
+    const commentedArticle = await this.articlesService.commentArticle(
+      id,
+      commentArticleDto.comment,
+    );
+    if (!commentedArticle) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return this.transformToResponseDto(commentedArticle);
+  }
+
+  @Post('manage/:id')
+  async manageArticle(
+    @Param('id') id: string,
+    @Body() manageArticleDto: ManageArticleDto,
+  ): Promise<ArticleResponseDto> {
+    const managedArticle = await this.articlesService.manageArticle(
+      id,
+      manageArticleDto,
+    );
+    if (!managedArticle) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return this.transformToResponseDto(managedArticle);
+  }
+
+  @Post('approve/:id')
+  async approveArticle(@Param('id') id: string): Promise<ArticleResponseDto> {
+    const approvedArticle = await this.articlesService.approveArticle(id);
+    if (!approvedArticle) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return this.transformToResponseDto(approvedArticle);
+  }
+
+  @Post('reject/:id')
+  async rejectArticle(@Param('id') id: string): Promise<{ message: string }> {
+    const deleted = await this.articlesService.rejectArticle(id);
+    if (!deleted) {
+      throw new NotFoundException(`Article with id ${id} not found`);
+    }
+    return { message: `Article with id ${id} has been rejected and deleted.` };
+  }
+
+  private transformToResponseDto(article: any): ArticleResponseDto {
+    return {
+      id: article._id.toString(),
+      title: article.title,
+      authors: article.authors,
+      source: article.source,
+      pubyear: article.pubyear,
+      doi: article.doi,
+      claim: article.claim,
+      evidence: article.evidence,
+      status: article.status,
+      ratings: article.ratings,
+      averageRating: article.averageRating,
+      comments: article.comments,
+      seMethod: article.seMethod,
+      studyType: article.studyType,
+      evidenceResult: article.evidenceResult,
+    };
   }
 }

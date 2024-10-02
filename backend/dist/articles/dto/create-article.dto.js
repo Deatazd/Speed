@@ -16,27 +16,22 @@ class CreateArticleDto {
 exports.CreateArticleDto = CreateArticleDto;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateArticleDto.prototype, "title", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
-    __metadata("design:type", Array)
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], CreateArticleDto.prototype, "authors", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateArticleDto.prototype, "source", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateArticleDto.prototype, "pubyear", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateArticleDto.prototype, "doi", void 0);
 __decorate([
@@ -51,15 +46,5 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateArticleDto.prototype, "seMethod", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateArticleDto.prototype, "studyType", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateArticleDto.prototype, "evidenceResult", void 0);
+], CreateArticleDto.prototype, "status", void 0);
 //# sourceMappingURL=create-article.dto.js.map

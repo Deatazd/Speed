@@ -1,51 +1,52 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type ArticleDocument = Article & Document;
 
 @Schema()
 export class Article {
-  @Prop({ required: true })
-  title: string;
+    @Prop({ required: true })
+    title: string;
 
-  @Prop({ required: true })
-  authors: string[];
+    // 将 authors 修改为数组类型
+    @Prop({ type: [String], required: true })
+    authors: string[];  // 这里使用字符串数组
 
-  @Prop({ required: true })
-  source: string;
+    @Prop({ required: true })
+    source: string;
 
-  @Prop({ required: true })
-  pubyear: number;
+    @Prop({ required: true })
+    pubyear: number;
 
-  @Prop()
-  doi?: string;
+    @Prop({ required: true })
+    doi: string;
 
-  @Prop({ required: true })
-  claim: string;
+    @Prop({ required: true })
+    claim: string;
 
-  @Prop({ required: true })
-  evidence: string;
+    @Prop({ required: true })
+    evidence: string;
 
-  @Prop({ default: 'pending' })
-  status: string; // pending, approved, rejected
+    @Prop({ required: true, default: 'pending' })
+    status: string;
 
-  @Prop({ default: [] })
-  ratings: number[];
+    @Prop({ type: [Number], default: [] })
+    ratings: number[];
 
-  @Prop({ default: [] })
-  comments: string[];
+    @Prop({ default: 0 })
+    averageRating: number;
 
-  @Prop({ default: 0 })
-  averageRating: number;
+    @Prop({ type: [String], default: [] })
+    comments: string[];
 
-  @Prop()
-  seMethod?: string; // SE 方法
+    @Prop()
+    seMethod: string;
 
-  @Prop()
-  studyType?: string; // 研究类型
+    @Prop()
+    studyType: string;
 
-  @Prop()
-  evidenceResult?: string; // 证据结果
+    @Prop()
+    evidenceResult: string;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);

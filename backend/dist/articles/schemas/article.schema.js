@@ -19,7 +19,7 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "title", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ type: [String], required: true }),
     __metadata("design:type", Array)
 ], Article.prototype, "authors", void 0);
 __decorate([
@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Article.prototype, "pubyear", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Article.prototype, "doi", void 0);
 __decorate([
@@ -43,21 +43,21 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "evidence", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'pending' }),
+    (0, mongoose_1.Prop)({ required: true, default: 'pending' }),
     __metadata("design:type", String)
 ], Article.prototype, "status", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: [] }),
+    (0, mongoose_1.Prop)({ type: [Number], default: [] }),
     __metadata("design:type", Array)
 ], Article.prototype, "ratings", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: [] }),
-    __metadata("design:type", Array)
-], Article.prototype, "comments", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
 ], Article.prototype, "averageRating", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    __metadata("design:type", Array)
+], Article.prototype, "comments", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
