@@ -2,9 +2,18 @@ import React from "react";
 import { useForm } from "react-hook-form";
 
 export default function SubmissionForm() {
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit } = useForm<FormData>();
 
-    const onSubmit = (data: any) => JSON.stringify(data);
+    interface FormData {
+        title: string;
+        authors: string;
+        source: string;
+        pubyear: string;
+        doi: string;
+        linked_discussion: string;
+    }
+    
+    const onSubmit = (data: FormData) => JSON.stringify(data);
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
