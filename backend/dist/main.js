@@ -6,6 +6,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const swagger_1 = require("@nestjs/swagger");
 async function bootstrap() {
+    console.log('Starting application bootstrap...');
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const configService = app.get(config_1.ConfigService);
     app.useGlobalPipes(new common_1.ValidationPipe());
@@ -21,7 +22,15 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     });
-    await app.listen(configService.get('PORT') || 8082);
+    const port = configService.get('PORT') || 8082;
+    console.log(`Application is listening on port ${port}...`);
+    try {
+        await app.listen(port);
+        console.log('Application started successfully');
+    }
+    catch (error) {
+        console.error('Error starting application:', error);
+    }
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
