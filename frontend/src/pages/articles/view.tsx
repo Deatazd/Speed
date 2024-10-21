@@ -1,7 +1,8 @@
+// src/pages/articles/view.tsx
+
 import { GetStaticProps, NextPage } from "next";
 import SortableTable from "../../components/table/SortableTable";
-import { useState } from "react";
-import { Container, Typography, Alert, Paper } from "@mui/material";
+import { Container, Typography, Paper } from "@mui/material";
 
 interface ArticlesInterface {
     id: string;
@@ -31,26 +32,18 @@ const ViewArticles: NextPage<ArticlesProps> = ({ articles }) => {
         { key: "averageRating", label: "Average Rating" },
     ];
 
-    const [viewArticles] = useState<ArticlesInterface[]>(articles);
-    const [message] = useState<string>("");
-
     return (
         <Container maxWidth="lg" sx={{ mt: 5 }}>
             <Typography variant="h4" gutterBottom>
-                View Articles
+                View Approved Articles
             </Typography>
-            {message && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {message}
-                </Alert>
-            )}
-            {viewArticles.length === 0 ? (
-                <Typography variant="h6">No articles available.</Typography>
+            {articles.length === 0 ? (
+                <Typography variant="h6">No approved articles available.</Typography>
             ) : (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <SortableTable 
                         headers={headers} 
-                        data={viewArticles} 
+                        data={articles} 
                         rowKey="id"
                     />
                 </Paper>
@@ -59,17 +52,19 @@ const ViewArticles: NextPage<ArticlesProps> = ({ articles }) => {
     );
 };
 
-// 获取后端数据并处理 pubyear 和 averageRating 字段
 export const getStaticProps: GetStaticProps<ArticlesProps> = async () => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/view`); 
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/approved`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
 
         const articles: ArticlesInterface[] = data.map((article: { 
             id?: string; 
             _id?: string; 
             title: string; 
-            authors: string; 
+            authors: string[] | string; 
             source: string; 
             pubyear?: number; 
             doi: string; 
@@ -79,7 +74,7 @@ export const getStaticProps: GetStaticProps<ArticlesProps> = async () => {
         }) => ({
             id: article.id ?? article._id,
             title: article.title,
-            authors: article.authors,
+            authors: Array.isArray(article.authors) ? article.authors.join(', ') : article.authors,
             source: article.source,
             pubyear: article.pubyear ?? "N/A",
             doi: article.doi,
@@ -88,13 +83,15 @@ export const getStaticProps: GetStaticProps<ArticlesProps> = async () => {
             averageRating: article.averageRating ?? 0,
         }));
 
+        console.log("Fetched articles:", articles); // 调试日志
+
         return {
             props: {
                 articles,
             },
             revalidate: 10,
         };
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Failed to fetch articles:", error);
         return {
             props: {

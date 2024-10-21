@@ -15,9 +15,5 @@ export class ManageArticleDto {
 
     @IsOptional()
     @IsString()
-    studyType?: string;
-
-    @IsOptional()
-    @IsString()
     evidenceResult?: string;
 }

@@ -1,5 +1,8 @@
+// src/articles/schemas/article.schema.ts
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { ArticleStatus } from '../enums/article-status.enum';
 
 export type ArticleDocument = Article & Document;
 
@@ -8,9 +11,8 @@ export class Article {
     @Prop({ required: true })
     title: string;
 
-    // 将 authors 修改为数组类型
-    @Prop({ type: [String], required: true })
-    authors: string[];  // 这里使用字符串数组
+    @Prop({ required: true, type: [String] })
+    authors: string[];
 
     @Prop({ required: true })
     source: string;
@@ -27,8 +29,8 @@ export class Article {
     @Prop({ required: true })
     evidence: string;
 
-    @Prop({ required: true, default: 'pending' })
-    status: string;
+    @Prop({ required: true, enum: ArticleStatus, default: ArticleStatus.Pending })
+    status: ArticleStatus;
 
     @Prop({ type: [Number], default: [] })
     ratings: number[];
@@ -39,13 +41,13 @@ export class Article {
     @Prop({ type: [String], default: [] })
     comments: string[];
 
-    @Prop()
+    @Prop({ required: true })
     seMethod: string;
 
-    @Prop()
+    @Prop({ required: true })
     studyType: string;
 
-    @Prop()
+    @Prop({ required: true })
     evidenceResult: string;
 }
 

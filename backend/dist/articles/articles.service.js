@@ -17,56 +17,78 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const article_schema_1 = require("./schemas/article.schema");
+const article_status_enum_1 = require("./enums/article-status.enum");
 let ArticlesService = class ArticlesService {
     constructor(articleModel) {
         this.articleModel = articleModel;
     }
     async createArticle(createArticleDto) {
         const createdArticle = new this.articleModel(createArticleDto);
-        createdArticle.status = 'pending';
-        return createdArticle.save();
-    }
-    async getPendingArticles() {
-        return this.articleModel.find({ status: 'pending' }).exec();
-    }
-    async getManagedArticles() {
-        return this.articleModel.find({ status: 'managed' }).exec();
-    }
-    async getApprovedArticles() {
-        return this.articleModel.find({ status: 'approved' }).exec();
+        createdArticle.status = article_status_enum_1.ArticleStatus.Pending;
+        try {
+            return await createdArticle.save();
+        }
+        catch (error) {
+            console.error('Error creating article:', error);
+            throw new common_1.InternalServerErrorException('Failed to create article.');
+        }
     }
     async findAll() {
         return this.articleModel.find().exec();
     }
-    async extractArticleInfo(id, extractedInfo) {
-        return this.articleModel
-            .findByIdAndUpdate(id, extractedInfo, { new: true })
-            .exec();
+    async getPendingArticles() {
+        return this.articleModel.find({ status: article_status_enum_1.ArticleStatus.Pending }).exec();
     }
-    async searchArticles(searchParams) {
-        const query = {};
-        if (searchParams.method) {
-            query.seMethod = { $regex: searchParams.method, $options: 'i' };
+    async getManagedArticles() {
+        return this.articleModel.find({ status: article_status_enum_1.ArticleStatus.Managed }).exec();
+    }
+    async getApprovedArticles() {
+        return this.articleModel.find({ status: article_status_enum_1.ArticleStatus.Approved }).exec();
+    }
+    async manageArticle(id, manageArticleDto) {
+        const article = await this.articleModel.findById(id).exec();
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
         }
-        if (searchParams.claim) {
-            query.claim = { $regex: searchParams.claim, $options: 'i' };
+        if (article.status !== article_status_enum_1.ArticleStatus.Pending) {
+            throw new common_1.BadRequestException(`Article with id ${id} is not in a pending state`);
         }
-        if (searchParams.startYear && searchParams.endYear) {
-            query.pubyear = { $gte: searchParams.startYear, $lte: searchParams.endYear };
+        const { rating, seMethod, evidenceResult } = manageArticleDto;
+        if (rating !== undefined && rating !== null) {
+            article.ratings.push(rating);
+            article.averageRating =
+                article.ratings.reduce((a, b) => a + b, 0) / article.ratings.length;
         }
-        else if (searchParams.startYear) {
-            query.pubyear = { $gte: searchParams.startYear };
+        if (seMethod) {
+            article.seMethod = seMethod;
         }
-        else if (searchParams.endYear) {
-            query.pubyear = { $lte: searchParams.endYear };
+        if (evidenceResult) {
+            article.evidenceResult = evidenceResult;
         }
-        if (searchParams.studyType) {
-            query.studyType = searchParams.studyType;
+        article.status = article_status_enum_1.ArticleStatus.Managed;
+        return article.save();
+    }
+    async approveArticle(id) {
+        const article = await this.articleModel.findById(id).exec();
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
         }
-        if (searchParams.evidenceResult) {
-            query.evidenceResult = searchParams.evidenceResult;
+        if (article.status !== article_status_enum_1.ArticleStatus.Managed) {
+            throw new common_1.BadRequestException(`Article with id ${id} is not in a managed state`);
         }
-        return this.articleModel.find(query).exec();
+        article.status = article_status_enum_1.ArticleStatus.Approved;
+        return article.save();
+    }
+    async rejectArticle(id) {
+        const article = await this.articleModel.findById(id).exec();
+        if (!article) {
+            throw new common_1.NotFoundException(`Article with id ${id} not found`);
+        }
+        if (article.status !== article_status_enum_1.ArticleStatus.Managed) {
+            throw new common_1.BadRequestException(`Article with id ${id} is not in a managed state`);
+        }
+        article.status = article_status_enum_1.ArticleStatus.Rejected;
+        return article.save();
     }
     async rateArticle(id, rating) {
         const article = await this.articleModel.findById(id).exec();
@@ -86,41 +108,41 @@ let ArticlesService = class ArticlesService {
         article.comments.push(comment);
         return article.save();
     }
-    async manageArticle(id, manageArticleDto) {
-        const article = await this.articleModel.findById(id).exec();
-        if (!article) {
-            throw new common_1.NotFoundException(`Article with id ${id} not found`);
-        }
-        const { rating, seMethod, studyType, evidenceResult } = manageArticleDto;
-        if (rating) {
-            article.ratings.push(rating);
-            article.averageRating =
-                article.ratings.reduce((a, b) => a + b, 0) / article.ratings.length;
-        }
-        if (seMethod) {
-            article.seMethod = seMethod;
-        }
-        if (studyType) {
-            article.studyType = studyType;
-        }
-        if (evidenceResult) {
-            article.evidenceResult = evidenceResult;
-        }
-        article.status = 'managed';
-        return article.save();
-    }
-    async approveArticle(id) {
-        const updatedArticle = await this.articleModel
-            .findByIdAndUpdate(id, { status: 'approved' }, { new: true })
+    async extractArticleInfo(id, extractedInfo) {
+        return this.articleModel
+            .findByIdAndUpdate(id, extractedInfo, { new: true })
             .exec();
-        if (!updatedArticle) {
-            throw new common_1.NotFoundException(`Article with id ${id} not found`);
-        }
-        return updatedArticle;
     }
-    async rejectArticle(id) {
-        const deleted = await this.articleModel.findByIdAndDelete(id).exec();
-        return !!deleted;
+    async searchArticles(searchParams) {
+        try {
+            const filter = { status: article_status_enum_1.ArticleStatus.Approved };
+            if (searchParams.method) {
+                filter.seMethod = { $regex: searchParams.method, $options: 'i' };
+            }
+            if (searchParams.claim) {
+                filter.claim = { $regex: searchParams.claim, $options: 'i' };
+            }
+            if (searchParams.startYear || searchParams.endYear) {
+                filter.pubyear = {};
+                if (searchParams.startYear) {
+                    filter.pubyear.$gte = searchParams.startYear;
+                }
+                if (searchParams.endYear) {
+                    filter.pubyear.$lte = searchParams.endYear;
+                }
+            }
+            if (searchParams.studyType) {
+                filter.studyType = searchParams.studyType;
+            }
+            if (searchParams.evidenceResult) {
+                filter.evidenceResult = searchParams.evidenceResult;
+            }
+            return this.articleModel.find(filter).exec();
+        }
+        catch (error) {
+            console.error('Error searching articles:', error);
+            throw new common_1.InternalServerErrorException('Failed to search articles.');
+        }
     }
 };
 exports.ArticlesService = ArticlesService;

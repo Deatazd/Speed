@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticleSchema = exports.Article = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const article_status_enum_1 = require("../enums/article-status.enum");
 let Article = class Article {
 };
 exports.Article = Article;
@@ -19,7 +20,7 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "title", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], required: true }),
+    (0, mongoose_1.Prop)({ required: true, type: [String] }),
     __metadata("design:type", Array)
 ], Article.prototype, "authors", void 0);
 __decorate([
@@ -43,7 +44,7 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "evidence", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 'pending' }),
+    (0, mongoose_1.Prop)({ required: true, enum: article_status_enum_1.ArticleStatus, default: article_status_enum_1.ArticleStatus.Pending }),
     __metadata("design:type", String)
 ], Article.prototype, "status", void 0);
 __decorate([
@@ -59,15 +60,15 @@ __decorate([
     __metadata("design:type", Array)
 ], Article.prototype, "comments", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Article.prototype, "seMethod", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Article.prototype, "studyType", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Article.prototype, "evidenceResult", void 0);
 exports.Article = Article = __decorate([

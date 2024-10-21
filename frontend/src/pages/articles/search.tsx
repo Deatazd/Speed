@@ -38,6 +38,7 @@ interface SearchArticle {
     doi: string;
     claim: string;
     evidence: string;
+    // 其他字段可以根据需要添加
 }
 
 const SearchPage: NextPage = () => {
@@ -69,8 +70,8 @@ const SearchPage: NextPage = () => {
                 body: JSON.stringify({
                     method: searchParams.method || undefined,
                     claim: searchParams.claim || undefined,
-                    startYear: searchParams.startYear ? Number(searchParams.startYear) : undefined,
-                    endYear: searchParams.endYear ? Number(searchParams.endYear) : undefined,
+                    startYear: searchParams.startYear || undefined,
+                    endYear: searchParams.endYear || undefined,
                     studyType: searchParams.studyType || undefined,
                     evidenceResult: searchParams.evidenceResult || undefined,
                 }),
