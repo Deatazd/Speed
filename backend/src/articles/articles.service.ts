@@ -164,12 +164,12 @@ export class ArticlesService {
               filter.claim = { $regex: searchParams.claim, $options: 'i' };
           }
 
-          if (searchParams.startYear || searchParams.endYear) {
+          if (searchParams.startYear !== undefined || searchParams.endYear !== undefined) {
               filter.pubyear = {};
-              if (searchParams.startYear) {
+              if (searchParams.startYear !== undefined) {
                   filter.pubyear.$gte = searchParams.startYear;
               }
-              if (searchParams.endYear) {
+              if (searchParams.endYear !== undefined) {
                   filter.pubyear.$lte = searchParams.endYear;
               }
           }
@@ -182,10 +182,18 @@ export class ArticlesService {
               filter.evidenceResult = searchParams.evidenceResult;
           }
 
-          return this.articleModel.find(filter).exec();
+          // 调试：记录最终的过滤器，确保其正确
+          console.log('搜索过滤器:', JSON.stringify(filter, null, 2));
+
+          const articles = await this.articleModel.find(filter).exec();
+
+          // 调试：记录找到的文章数量
+          console.log(`找到 ${articles.length} 篇符合搜索条件的已批准文章。`);
+
+          return articles;
       } catch (error) {
-          console.error('Error searching articles:', error);
-          throw new InternalServerErrorException('Failed to search articles.');
+          console.error('搜索文章时出错:', error);
+          throw new InternalServerErrorException('搜索文章失败。');
       }
   }
 }

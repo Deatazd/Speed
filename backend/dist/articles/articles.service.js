@@ -122,12 +122,12 @@ let ArticlesService = class ArticlesService {
             if (searchParams.claim) {
                 filter.claim = { $regex: searchParams.claim, $options: 'i' };
             }
-            if (searchParams.startYear || searchParams.endYear) {
+            if (searchParams.startYear !== undefined || searchParams.endYear !== undefined) {
                 filter.pubyear = {};
-                if (searchParams.startYear) {
+                if (searchParams.startYear !== undefined) {
                     filter.pubyear.$gte = searchParams.startYear;
                 }
-                if (searchParams.endYear) {
+                if (searchParams.endYear !== undefined) {
                     filter.pubyear.$lte = searchParams.endYear;
                 }
             }
@@ -137,11 +137,14 @@ let ArticlesService = class ArticlesService {
             if (searchParams.evidenceResult) {
                 filter.evidenceResult = searchParams.evidenceResult;
             }
-            return this.articleModel.find(filter).exec();
+            console.log('搜索过滤器:', JSON.stringify(filter, null, 2));
+            const articles = await this.articleModel.find(filter).exec();
+            console.log(`找到 ${articles.length} 篇符合搜索条件的已批准文章。`);
+            return articles;
         }
         catch (error) {
-            console.error('Error searching articles:', error);
-            throw new common_1.InternalServerErrorException('Failed to search articles.');
+            console.error('搜索文章时出错:', error);
+            throw new common_1.InternalServerErrorException('搜索文章失败。');
         }
     }
 };

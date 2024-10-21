@@ -3,9 +3,9 @@
 export class ArticleResponseDto {
     id: string;
     title: string;
-    authors: string;
+    authors: string[];
     source: string;
-    pubyear: number | string;
+    pubyear: number;
     doi: string;
     claim: string;
     evidence: string;
