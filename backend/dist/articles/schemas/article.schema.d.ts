@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { ArticleStatus } from '../enums/article-status.enum';
 export type ArticleDocument = Article & Document;
 export declare class Article {
     title: string;
@@ -8,7 +9,7 @@ export declare class Article {
     doi: string;
     claim: string;
     evidence: string;
-    status: string;
+    status: ArticleStatus;
     ratings: number[];
     averageRating: number;
     comments: string[];

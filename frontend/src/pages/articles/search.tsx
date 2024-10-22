@@ -19,6 +19,7 @@ import {
     Paper,
     CircularProgress,
 } from "@mui/material";
+import { SearchRequestBody } from "../../types/SearchRequestBody"; // 导入接口
 
 interface SearchParams {
     method?: string;
@@ -32,12 +33,13 @@ interface SearchParams {
 interface SearchArticle {
     id: string;
     title: string;
-    authors: string;
+    authors: string[]; // 修改为字符串数组
     source: string;
-    pubyear: number | string;
+    pubyear: number;
     doi: string;
     claim: string;
     evidence: string;
+    // 其他字段可以根据需要添加
 }
 
 const SearchPage: NextPage = () => {
@@ -50,7 +52,7 @@ const SearchPage: NextPage = () => {
         const { name, value } = e.target;
         setSearchParams(prev => ({
             ...prev,
-            [name]: name.includes("year") ? (value ? Number(value) : undefined) : value,
+            [name]: name.includes("year") ? (value !== "" ? Number(value) : undefined) : value,
         }));
     };
 
@@ -61,19 +63,28 @@ const SearchPage: NextPage = () => {
         setResults([]);
 
         try {
+            // 动态构建请求体，使用 SearchRequestBody 接口
+            const body: SearchRequestBody = {
+                method: searchParams.method || undefined,
+                claim: searchParams.claim || undefined,
+                studyType: searchParams.studyType || undefined,
+                evidenceResult: searchParams.evidenceResult || undefined,
+            };
+
+            if (searchParams.startYear !== undefined) {
+                body.startYear = searchParams.startYear;
+            }
+
+            if (searchParams.endYear !== undefined) {
+                body.endYear = searchParams.endYear;
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/search`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    method: searchParams.method || undefined,
-                    claim: searchParams.claim || undefined,
-                    startYear: searchParams.startYear ? Number(searchParams.startYear) : undefined,
-                    endYear: searchParams.endYear ? Number(searchParams.endYear) : undefined,
-                    studyType: searchParams.studyType || undefined,
-                    evidenceResult: searchParams.evidenceResult || undefined,
-                }),
+                body: JSON.stringify(body),
             });
 
             if (!response.ok) {
@@ -125,7 +136,7 @@ const SearchPage: NextPage = () => {
                                 label="Publication Year From"
                                 name="startYear"
                                 type="number"
-                                value={searchParams.startYear || ""}
+                                value={searchParams.startYear !== undefined ? searchParams.startYear : ""}
                                 onChange={handleChange}
                                 InputProps={{ inputProps: { min: 1900, max: new Date().getFullYear() } }}
                                 fullWidth
@@ -134,7 +145,7 @@ const SearchPage: NextPage = () => {
                                 label="To"
                                 name="endYear"
                                 type="number"
-                                value={searchParams.endYear || ""}
+                                value={searchParams.endYear !== undefined ? searchParams.endYear : ""}
                                 onChange={handleChange}
                                 InputProps={{ inputProps: { min: 1900, max: new Date().getFullYear() } }}
                                 fullWidth
@@ -194,7 +205,7 @@ const SearchPage: NextPage = () => {
                                 {results.map(article => (
                                     <TableRow key={article.id}>
                                         <TableCell>{article.title}</TableCell>
-                                        <TableCell>{article.authors}</TableCell>
+                                        <TableCell>{article.authors.join(", ")}</TableCell>
                                         <TableCell>{article.source}</TableCell>
                                         <TableCell>{article.pubyear}</TableCell>
                                         <TableCell>{article.doi}</TableCell>
@@ -209,6 +220,7 @@ const SearchPage: NextPage = () => {
             )}
         </Container>
     );
+
 };
 
 export default SearchPage;

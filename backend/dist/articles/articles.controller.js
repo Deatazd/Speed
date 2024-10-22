@@ -16,8 +16,11 @@ exports.ArticlesController = void 0;
 const common_1 = require("@nestjs/common");
 const articles_service_1 = require("./articles.service");
 const create_article_dto_1 = require("./dto/create-article.dto");
+const manage_article_dto_1 = require("./dto/manage-article.dto");
 const search_article_dto_1 = require("./dto/search-article.dto");
 const extract_info_dto_1 = require("./dto/extract-info.dto");
+const rate_article_dto_1 = require("./dto/rate-article.dto");
+const comment_article_dto_1 = require("./dto/comment-article.dto");
 let ArticlesController = class ArticlesController {
     constructor(articlesService) {
         this.articlesService = articlesService;
@@ -26,20 +29,20 @@ let ArticlesController = class ArticlesController {
         const article = await this.articlesService.createArticle(createArticleDto);
         return this.transformToResponseDto(article);
     }
-    async getPendingArticles() {
-        const articles = await this.articlesService.getPendingArticles();
+    async findAll() {
+        const articles = await this.articlesService.findAll();
         return articles.map((article) => this.transformToResponseDto(article));
     }
-    async getApprovedArticles() {
-        const articles = await this.articlesService.getApprovedArticles();
+    async getPendingArticles() {
+        const articles = await this.articlesService.getPendingArticles();
         return articles.map((article) => this.transformToResponseDto(article));
     }
     async getManagedArticles() {
         const articles = await this.articlesService.getManagedArticles();
         return articles.map((article) => this.transformToResponseDto(article));
     }
-    async findAll() {
-        const articles = await this.articlesService.findAll();
+    async getApprovedArticles() {
+        const articles = await this.articlesService.getApprovedArticles();
         return articles.map((article) => this.transformToResponseDto(article));
     }
     async extractArticleInfo(id, extractedInfo) {
@@ -82,11 +85,11 @@ let ArticlesController = class ArticlesController {
         return this.transformToResponseDto(approvedArticle);
     }
     async rejectArticle(id) {
-        const deleted = await this.articlesService.rejectArticle(id);
-        if (!deleted) {
+        const rejectedArticle = await this.articlesService.rejectArticle(id);
+        if (!rejectedArticle) {
             throw new common_1.NotFoundException(`Article with id ${id} not found`);
         }
-        return { message: `Article with id ${id} has been rejected and deleted.` };
+        return this.transformToResponseDto(rejectedArticle);
     }
     transformToResponseDto(article) {
         return {
@@ -117,29 +120,29 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "createArticle", null);
 __decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "findAll", null);
+__decorate([
     (0, common_1.Get)('pending'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "getPendingArticles", null);
 __decorate([
-    (0, common_1.Get)('approved'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], ArticlesController.prototype, "getApprovedArticles", null);
-__decorate([
-    (0, common_1.Get)('view'),
+    (0, common_1.Get)('managed'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "getManagedArticles", null);
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Get)('approved'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ArticlesController.prototype, "findAll", null);
+], ArticlesController.prototype, "getApprovedArticles", null);
 __decorate([
     (0, common_1.Post)('extract-info/:id'),
     __param(0, (0, common_1.Param)('id')),
@@ -160,7 +163,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, rate_article_dto_1.RateArticleDto]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "rateArticle", null);
 __decorate([
@@ -168,7 +171,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, comment_article_dto_1.CommentArticleDto]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "commentArticle", null);
 __decorate([
@@ -176,18 +179,18 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, manage_article_dto_1.ManageArticleDto]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "manageArticle", null);
 __decorate([
-    (0, common_1.Post)('approve/:id'),
+    (0, common_1.Put)('approve/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "approveArticle", null);
 __decorate([
-    (0, common_1.Post)('reject/:id'),
+    (0, common_1.Put)('reject/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
