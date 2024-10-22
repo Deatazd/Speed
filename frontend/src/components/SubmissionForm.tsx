@@ -2,8 +2,10 @@ import React from "react";
 import { useForm } from "react-hook-form";
 
 export default function SubmissionForm() {
+    // Using react-hook-form to manage form state
     const { register, handleSubmit } = useForm<FormData>();
 
+    // Defining the FormData interface for type safety
     interface FormData {
         title: string;
         authors: string;
@@ -13,6 +15,7 @@ export default function SubmissionForm() {
         linked_discussion: string;
     }
     
+    // Function to handle form submission
     const onSubmit = (data: FormData) => JSON.stringify(data);
 
     return (
@@ -34,7 +37,7 @@ export default function SubmissionForm() {
             <select {...register("linked_discussion")}>
                 <option value="">Select SE practice...</option>
                 <option value="TDD">TDD</option>
-                <option value="Mob Programming">Mob Programmin</option>
+                <option value="Mob Programming">Mob Programming</option>
             </select>
             <input type="submit" />
         </form>
