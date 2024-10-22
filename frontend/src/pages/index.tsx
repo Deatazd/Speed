@@ -4,8 +4,10 @@ import React from 'react';
 const Home = () => {
   return (
     <div>
-      <h1>Software Practice Empirical Evidence Database (SPEED)</h1>
-    </div>
+     
+      <img src="/images/SPEED.JPG" alt="SPEED" style={{ width: '100%', height: '750px', border: '2px solid black'}} />
+
+      </div>
   );
 };
 

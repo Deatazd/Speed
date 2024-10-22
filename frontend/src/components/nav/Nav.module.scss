@@ -2,15 +2,20 @@
     display: flex;
     position: relative;
     top: 0;
+    left: 0;
     flex-direction: row;
-    width: 100%;
-    background-color: darkblue;
+    width: 100vw;
+    background-color: #023047;
     align-items: center;
     color: aliceblue;
     font-size: 1.5em;
     font-weight: bold;
     transition: top 0.5s;
-    height: fit-content;
+    padding: 0;
+    height: auto;
+    font-family: 'Roboto', sans-serif; /* Apply Roboto font */
+    z-index: 1000;
+    box-sizing: border-box;
 }
 
 .hide {
@@ -41,7 +46,7 @@
     visibility: hidden;
     display: flex;
     flex-direction: column;
-    background-color: darkblue;
+    background-color: #023047;
     position: absolute;
     top: 100%;
     right: 0;
@@ -58,4 +63,13 @@
 
 .end {
     margin-left: auto;
+}
+
+.dropdown_container .navitem:hover {
+    color: white; 
+    background-color:color(srgb 0.5858 0.8181 0.8234);
+}
+
+.dropdown_container .navitem:hover {
+    cursor: pointer;
 }
